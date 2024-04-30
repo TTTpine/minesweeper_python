@@ -1,1 +1,2 @@
-# minesweeper_python
+# 简单说明
+## 基于python实现的简单版扫雷,实现了基本功能
