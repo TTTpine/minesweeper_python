@@ -12,7 +12,7 @@ class MainWindow():
         self.screenheight = 450
         self.windowName = "扫雷"
 
-        # 部分参数
+        # 系统参数
         self.cellsSize = 25     # 单元格长度
         self.mapCellSize = 10    # 地图格子边长
         self.fontHorizontalSize = 7  # 字体水平间距
@@ -66,15 +66,22 @@ class MainWindow():
 
         # 主循环
         while True:
+            if not self.windowOver:
+                # 绘制倒计时
+                self.process_limitTime()
+
             for event in pygame.event.get():
                 # 主动退出
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                elif event.type == pygame.KEYDOWN:
+                    if self.windowOver and event.key == pygame.K_SPACE:
+                        self.set_window()
+                        self.init_program()
+                        self.windowOver = False
             
-                # 程序结束
-                if self.windowOver:
-                    pass
-                else:
+                # 程序没结束时
+                if not self.windowOver:
                     if event.type == pygame.MOUSEBUTTONDOWN:      # 鼠标点击
                         # 获取鼠标点击位置
                         mouseY, mouseX = pygame.mouse.get_pos()
@@ -89,7 +96,7 @@ class MainWindow():
                                 continue
                         elif event.button == 3:   # 右键标记
                             self.ScanPoint.markCell(positionX, positionY)
-                        
+                    
                         # 绘制
                         self.excute_program()
                         if self.ScanPoint.isWin():
@@ -129,34 +136,34 @@ class MainWindow():
                 if strChar == "#":
                     pass
                 elif strChar == "@":
-                    self.display_precent("+", j*self.cellsSize, i*self.cellsSize)
+                    self.displayTxt("+", j*self.cellsSize, i*self.cellsSize)
                 elif strChar == "0":
                     self.display_rect(j*self.cellsSize, i*self.cellsSize)
                 else:
                     self.display_rect(j*self.cellsSize, i*self.cellsSize)
-                    self.display_precent(strChar, j*self.cellsSize, i*self.cellsSize)
+                    self.displayTxt(strChar, j*self.cellsSize, i*self.cellsSize)
 
-    # 绘制数字百分百
-    def display_precent(self, strNum, positionX, positionY, color=(255, 0, 0)):
+    # 绘制文本
+    def displayTxt(self, strNum, positionX, positionY, color=(255, 0, 0)):
         text = self.font.render(strNum, True, color)
         self.screen.blit(text, (positionX + self.fontHorizontalSize, positionY + self.fontVerticalSize))
 
     # 程序结束-失败
     def program_over_fail(self, clickPosition):
         # 绘制结束界面
-        self.display_precent("fail!", self.screenWidth/2-self.cellsSize, self.screenheight-self.cellsSize, self.RedColor)
+        self.displayTxt("fail!", self.screenWidth/2-self.cellsSize, self.screenheight-self.cellsSize, self.RedColor)
         # 显示地雷位置
         for bombPosition in self.ScanPoint.bombPositionList:
             positionX = bombPosition[0] * self.cellsSize
             positionY = bombPosition[1] * self.cellsSize
             if clickPosition == bombPosition:
-                self.display_precent("*", positionY, positionX, self.clickBombColor)
+                self.displayTxt("*", positionY, positionX, self.clickBombColor)
             else:
-                self.display_precent("*", positionY, positionX, self.bombColor)
+                self.displayTxt("*", positionY, positionX, self.bombColor)
 
     # 程序结束-胜利
     def program_over_win(self):
-        self.display_precent("win!", self.screenWidth/2-self.cellsSize, self.screenheight-self.cellsSize, self.RedColor)
+        self.displayTxt("win!", self.screenWidth/2-self.cellsSize, self.screenheight-self.cellsSize, self.RedColor)
 
     # 转换坐标
     def change_position(self, mouseX, mouseY):
@@ -167,6 +174,18 @@ class MainWindow():
     # 绘制小格
     def display_rect(self, positionX, positionY):
         pygame.draw.rect(self.screen, self.LightGrayColor, (positionX+2, positionY+2, self.cellsSize-2, self.cellsSize-2))
+
+    # 显示倒计时
+    def process_limitTime(self):
+        # 获取剩余时间
+        strLimitTime = self.ScanPoint.getRemainTime()
+        # 覆盖指定区域
+        pygame.draw.rect(self.screen, self.backgroundColor, (0, self.screenWidth+2, self.screenWidth, self.cellsSize))
+        self.displayTxt(strLimitTime, 0, self.screenheight-self.cellsSize, self.RedColor)
+        # 时间是否结束判断
+        if self.ScanPoint.isTimeOut():
+            self.windowOver = True
+            self.displayTxt("fail!", self.screenWidth/2-self.cellsSize, self.screenheight-self.cellsSize, self.RedColor)
 
 if __name__ == '__main__':
     mainWindow = MainWindow()

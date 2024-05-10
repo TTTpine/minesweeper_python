@@ -1,12 +1,17 @@
 
 import random
+import time
 
 class ScanPoints:
     def __init__(self):
-        # 默认参数
+        # 默认控制参数
         self.bombNum = 5                    # 地雷数
         self.mapCellSize = 5                # 格子数
+        self.limitTime = 600                # 限制游戏结束时间
 
+        # 系统参数
+        self.startUtcTime = self.getNowUtc()  # 开始游戏时间戳
+        self.remainTime = 0                  # 剩余时间
         self.bombPositionList = []
         self.bombMapList = []
         self.percentMapList = []
@@ -18,9 +23,28 @@ class ScanPoints:
         # 四分之一的炸弹
         self.bombNum = self.mapCellSize * self.mapCellSize / 5
 
+    # 获取当前utc时间
+    def getNowUtc(self):
+        return time.time()
+
     # 获取随机整形
     def randomInt(self, startidx, endidex):
         return random.randint(startidx, endidex)
+
+    # 计算游戏剩余时间
+    def getRemainTime(self):
+        useTime = self.getNowUtc() - self.startUtcTime
+        self.remainTime = self.limitTime - useTime
+        minute = int(self.remainTime / 60)
+        second = int(self.remainTime % 60)
+        strLimitTime = str(minute) + ":" + str(second)
+        return strLimitTime
+
+    # 剩余时间不足结束判断
+    def isTimeOut(self):
+        if self.remainTime <= 0 :
+            return True
+        return False
 
     # 胜利判断
     def isWin(self):
