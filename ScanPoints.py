@@ -3,25 +3,31 @@ import random
 import time
 
 class ScanPoints:
-    def __init__(self):
+    def __init__(self, bombNum, mapCellNum, limitTime):
         # 默认控制参数
-        self.bombNum = 5                    # 地雷数
-        self.mapCellSize = 5                # 格子数
-        self.limitTime = 600                # 限制游戏结束时间
+        self.bombNum = bombNum                    # 地雷数
+        self.mapCellNum = mapCellNum              # 格子数
+        self.limitTime = limitTime                # 限制游戏结束时间
 
         # 系统参数
-        self.startUtcTime = self.getNowUtc()  # 开始游戏时间戳
-        self.remainTime = 0                  # 剩余时间
+        self.startUtcTime = 0  # 开始游戏时间戳
+        self.remainTime = 0    # 剩余时间
         self.bombPositionList = []
         self.bombMapList = []
         self.percentMapList = []
         self.displayMapList = []
         self.markPositionList = []
 
+    # 开始计时
+    def recordStartTime(self):
+        self.startUtcTime = self.getNowUtc()
+
     # 设置难度
-    def setLevel(self):
-        # 四分之一的炸弹
-        self.bombNum = self.mapCellSize * self.mapCellSize / 5
+    def setLevel(self, level):
+        if level <= 0:
+            level = 5
+        # 设置单元格数量对应比例的炸弹数
+        self.bombNum = self.mapCellNum * self.mapCellNum / level
 
     # 获取当前utc时间
     def getNowUtc(self):
@@ -56,7 +62,7 @@ class ScanPoints:
     def generateBomb(self):
         while True:
             if len(self.bombPositionList) < self.bombNum:
-                position = (self.randomInt(0, self.mapCellSize-1), self.randomInt(0, self.mapCellSize-1))
+                position = (self.randomInt(0, self.mapCellNum-1), self.randomInt(0, self.mapCellNum-1))
                 if position not in self.bombPositionList:
                     self.bombPositionList.append(position)
             else:
@@ -68,10 +74,10 @@ class ScanPoints:
         self.generateBomb()
 
         # 生成地图
-        for i in range(self.mapCellSize):
+        for i in range(self.mapCellNum):
             tempbombListMap = []
             tempDisplayList = []
-            for j in range(self.mapCellSize):
+            for j in range(self.mapCellNum):
                 tempDisplayList.append("#")
                 if (i, j) in self.bombPositionList:
                     tempbombListMap.append(1)
@@ -85,9 +91,9 @@ class ScanPoints:
 
     # 计算地雷分布概率
     def caculatePercentage(self):
-        for i in range(self.mapCellSize):
+        for i in range(self.mapCellNum):
             tempList = []
-            for j in range(self.mapCellSize):
+            for j in range(self.mapCellNum):
                 percentage = 0
                 if self.bombMapList[i][j] == 1:
                     tempList.append("*")
@@ -97,19 +103,19 @@ class ScanPoints:
                     percentage = percentage + self.bombMapList[i-1][j-1]
                 if i - 1 >= 0:
                     percentage = percentage + self.bombMapList[i-1][j]
-                if i - 1 >= 0 and j + 1 < self.mapCellSize:
+                if i - 1 >= 0 and j + 1 < self.mapCellNum:
                     percentage = percentage + self.bombMapList[i-1][j+1]
 
                 if j - 1 >= 0:
                     percentage = percentage + self.bombMapList[i][j-1]
-                if j + 1 < self.mapCellSize:
+                if j + 1 < self.mapCellNum:
                     percentage = percentage + self.bombMapList[i][j+1]
                     
-                if i + 1 < self.mapCellSize and j - 1 >= 0:
+                if i + 1 < self.mapCellNum and j - 1 >= 0:
                     percentage = percentage + self.bombMapList[i+1][j-1]
-                if i + 1 < self.mapCellSize:
+                if i + 1 < self.mapCellNum:
                     percentage = percentage + self.bombMapList[i+1][j]
-                if i + 1 < self.mapCellSize and j + 1 < self.mapCellSize:
+                if i + 1 < self.mapCellNum and j + 1 < self.mapCellNum:
                     percentage = percentage + self.bombMapList[i+1][j+1]
                 tempList.append(str(percentage))
     
@@ -128,15 +134,15 @@ class ScanPoints:
         if self.percentMapList[positionX][positionY] == '0':
             if position == "up" and positionX > 0:
                 self.processClickCell(positionX-1, positionY, position)
-            elif position == "upRight" and positionX > 0 and positionY < self.mapCellSize-1:
+            elif position == "upRight" and positionX > 0 and positionY < self.mapCellNum-1:
                 self.processClickCell(positionX-1, positionY+1, position)
-            elif position == "right" and positionY < self.mapCellSize-1:
+            elif position == "right" and positionY < self.mapCellNum-1:
                 self.processClickCell(positionX, positionY+1, position)
-            elif position == "downRight" and positionX < self.mapCellSize-1 and positionY < self.mapCellSize-1:
+            elif position == "downRight" and positionX < self.mapCellNum-1 and positionY < self.mapCellNum-1:
                 self.processClickCell(positionX+1, positionY+1, position)
-            elif position == "down" and positionX < self.mapCellSize-1:
+            elif position == "down" and positionX < self.mapCellNum-1:
                 self.processClickCell(positionX+1, positionY, position)
-            elif position == "downLeft" and positionX < self.mapCellSize-1 and positionY > 0:
+            elif position == "downLeft" and positionX < self.mapCellNum-1 and positionY > 0:
                 self.processClickCell(positionX+1, positionY-1, position)
             elif position == "left" and positionY > 0:
                 self.processClickCell(positionX, positionY-1, position)

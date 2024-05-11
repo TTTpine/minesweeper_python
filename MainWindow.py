@@ -4,19 +4,16 @@ from ScanPoints import ScanPoints
 # 主窗口
 class MainWindow():
     def __init__(self):
-        # 窗口结束标签
-        self.windowOver = False
-
         # 默认窗口大小
         self.screenWidth = 400
         self.screenheight = 450
-        self.windowName = "扫雷"
 
         # 系统参数
+        self.windowName = "扫雷"
         self.cellsSize = 25     # 单元格长度
-        self.mapCellSize = 10    # 地图格子边长
         self.fontHorizontalSize = 7  # 字体水平间距
-        self.fontVerticalSize = 3  # 字体垂直间距
+        self.fontVerticalSize = 3    # 字体垂直间距
+        self.windowOver = False      # 窗口结束标签
 
         # 定义的颜色部分
         self.DimGreyColor = (105, 105, 105)
@@ -33,17 +30,20 @@ class MainWindow():
         self.percentColor = self.WhiteColor             # 百分比颜色
         self.markColor = self.RedColor                  # 标记颜色
 
-    # 重定义窗口内容
-    def set_window(self):
-        # 扫雷类
-        self.ScanPoint = ScanPoints()
-        # 设置格子数
-        self.ScanPoint.mapCellSize = self.mapCellSize
-        self.ScanPoint.setLevel()
+    # 初始化程序(程序初始化控制放这)
+    def init_program(self):
+        # 扫雷类初始化,(默认炸弹数,地图格子数,限制时间)
+        self.ScanPoint = ScanPoints(5, 10, 600)
+        # 设置等级
+        self.ScanPoint.setLevel(8)
         # 设置对应窗口大小
-        mapCellSize = self.mapCellSize * self.cellsSize
+        mapCellSize = self.ScanPoint.mapCellNum * self.cellsSize
         self.screenWidth = mapCellSize
-        self.screenheight = mapCellSize + self.cellsSize    # 多一格显示内容
+        self.screenheight = mapCellSize + self.cellsSize    # 高度多一格显示内容
+        # 生成扫雷地图
+        self.ScanPoint.genarateMap()
+        # 开始计时
+        self.ScanPoint.recordStartTime()
 
     # 初始化窗口
     def init_window(self):
@@ -54,15 +54,15 @@ class MainWindow():
         self.font = pygame.font.Font(None, 36)
         # 更改窗口名称
         pygame.display.set_caption(self.windowName)
+        # 绘制地图
+        self.display_map()
 
     # 开始
     def start(self):
-        # 重定义窗口内容
-        self.set_window()
-        # 初始化窗口
-        self.init_window()
         # 初始化程序
         self.init_program()
+        # 初始化窗口
+        self.init_window()
 
         # 主循环
         while True:
@@ -76,8 +76,9 @@ class MainWindow():
                     pygame.quit()
                 elif event.type == pygame.KEYDOWN:
                     if self.windowOver and event.key == pygame.K_SPACE:
-                        self.set_window()
                         self.init_program()
+                        # 重新绘制绘制地图
+                        self.display_map()
                         self.windowOver = False
             
                 # 程序没结束时
@@ -107,18 +108,11 @@ class MainWindow():
             pygame.time.wait(10)
             pygame.display.flip()
 
-    # 初始化程序(程序内初始化放这)
-    def init_program(self):
-        # 生成扫雷地图
-        self.ScanPoint.genarateMap()
-        # 绘制地图
-        self.display_map()
-
     # 绘制空白地图
     def display_map(self):
         # 绘制地图
         self.screen.fill(self.backgroundColor)
-        for i in range(1, self.ScanPoint.mapCellSize):
+        for i in range(1, self.ScanPoint.mapCellNum):
             pygame.draw.line(self.screen, self.lineColor, (0, i*self.cellsSize), (self.screenWidth, i*self.cellsSize), 2)
             pygame.draw.line(self.screen, self.lineColor, (i*self.cellsSize, 0), (i*self.cellsSize, self.screenWidth), 2)
         pygame.draw.line(self.screen, self.lineColor, (0, (i+1)*self.cellsSize), (self.screenWidth, (i+1)*self.cellsSize), 2)
